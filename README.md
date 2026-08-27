@@ -5,10 +5,6 @@ PHP client for the [validator.nu](https://validator.nu/) API. Can be configured 
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[![PHP Version](https://img.shields.io/badge/php-%3E%3D%207.1-8892BF.svg?style=flat-square)](https://php.net)[![License](https://img.shields.io/github/license/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[
 
-Version >= 3.0.0 requires PHP >= 7.1.
-Version >= 2.0.0 requires PHP >= 5.6, but is no longer maintained.
-Version <= 1.1.0 supports PHP <= 5.6, but is no longer maintained.
-
 # Usage
 
 ```php
@@ -25,18 +21,6 @@ $result->getErrors();   // array(HtmlValidator\Message)
 
 echo $result;           // Prints all messages in human-readable format
 echo $result->toHTML(); // Prints all messages HTML-formatted
-```
-
-# Installing
-
-To include `html-validator` in your project, add it to your `composer.json` file:
-
-```json
-{
- "require": {
- "rexxars/html-validator": "^3.0"
- }
-}
 ```
 
 # Example
