@@ -22,7 +22,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase {
      *
      * @covers \HtmlValidator\Response::__construct
      * @covers \HtmlValidator\Response::validateResponse
-     * @expectedException \HtmlValidator\Exception\ServerException
      */
     public function testWillThrowOnNon200Reponse() {
         $this->expectException(\HtmlValidator\Exception\ServerException::class);
@@ -40,7 +39,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase {
      *
      * @covers \HtmlValidator\Response::__construct
      * @covers \HtmlValidator\Response::validateResponse
-     * @expectedException \HtmlValidator\Exception\ServerException
      */
     public function testWillThrowOnNonJsonResponse() {
         $this->expectException(\HtmlValidator\Exception\ServerException::class);
@@ -64,7 +62,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase {
      *
      * @covers \HtmlValidator\Response::__construct
      * @covers \HtmlValidator\Response::validateResponse
-     * @expectedException \HtmlValidator\Exception\ServerException
      */
     public function testWillThrowOnInvalidJsonResponse() {
         $this->expectException(\HtmlValidator\Exception\ServerException::class);
