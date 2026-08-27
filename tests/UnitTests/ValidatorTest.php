@@ -219,7 +219,8 @@ class ValidatorTest extends \PHPUnit\Framework\TestCase {
                 $this->equalTo('POST'),
                 $this->equalTo(''),
                 $this->equalTo([
-                    'body' => '<?xml version="1.0" encoding="ISO-8859-1"?>' . "<root>". $nodes . '</root>',
+                    'body' => '<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>' . $nodes . '</root>',
                     'headers' => ['Content-Type' => 'application/xml; charset=iso-8859-1'],
                     'query' => [
                         'out'    => 'json',
