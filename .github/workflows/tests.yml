@@ -1,0 +1,52 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  php-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.5, 8.4, 8.3, 8.2, 8.1, 8.0, 7.4, 7.3, 7.2, 7.1]
+        dependency-version: [prefer-stable]
+        os: [ubuntu-latest, windows-latest]
+
+    name: ${{ matrix.os }} - PHP${{ matrix.php }} - ${{ matrix.dependency-version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.composer/cache/files
+          key: dependencies-php-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl
+          coverage: none
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Download vnu checker
+        run: wget https://github.com/validator/validator/releases/download/latest/vnu.jar
+
+      - name: Run Nu Html Checker (v.Nu)
+        run: java -cp vnu.jar -Xss2048k -Dnu.validator.servlet.bind-address=127.0.0.1 nu.validator.servlet.Main 8888 &
+
+      - name: Install dependencies
+        run: |
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+
+      - name: Execute tests
+        run: vendor/bin/phpunit
+

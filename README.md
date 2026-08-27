@@ -3,10 +3,11 @@ html-validator
 
 PHP client for the [validator.nu](https://validator.nu/) API. Can be configured to use a self-hosted version of the API.
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[![PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg?style=flat-square)](https://php.net)[![License](https://img.shields.io/github/license/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[![Build Status](https://img.shields.io/travis/rexxars/html-validator/master.svg?style=flat-square)](https://travis-ci.org/rexxars/html-validator)
+[![Latest Stable Version](https://img.shields.io/packagist/v/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[![PHP Version](https://img.shields.io/badge/php-%3E%3D%207.1-8892BF.svg?style=flat-square)](https://php.net)[![License](https://img.shields.io/github/license/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[
 
-Version >= 2.0.0 requires PHP >= 5.6.  
-Version <= 1.1.0 supports PHP <= 5.6, but won't be maintained anymore.
+Version >= 3.0.0 requires PHP >= 7.1.
+Version >= 2.0.0 requires PHP >= 5.6, but is no longer maintained.
+Version <= 1.1.0 supports PHP <= 5.6, but is no longer maintained.
 
 # Usage
 
@@ -32,9 +33,9 @@ To include `html-validator` in your project, add it to your `composer.json` file
 
 ```json
 {
-    "require": {
-        "rexxars/html-validator": "^2.2.0"
-    }
+ "require": {
+ "rexxars/html-validator": "^3.0"
+ }
 }
 ```
 
@@ -74,11 +75,9 @@ Output:
 ```
 info: HTML4-specific tokenization errors are enabled.
 
-
 error: End tag “li” seen, but there were open elements.
 From line 10, column 44; to line 10, column 48
 not closed</li>
-
 
 error: Unclosed element “div”.
 From line 10, column 13; to line 10, column 17
