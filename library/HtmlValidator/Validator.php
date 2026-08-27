@@ -239,10 +239,7 @@ class Validator {
         $document = (string) $document;
         $charset  = $charset ?: $this->defaultCharset;
         $headers  = [
-            'Content-Type' => $this->getContentTypeString(
-                $this->getMimeTypeForParser($this->parser),
-                $charset
-            ),
+            'Content-Type' => $this->getContentTypeString($this->getMimeTypeForParser($this->parser), $charset),
         ];
 
         try {
@@ -281,11 +278,11 @@ class Validator {
                 'parser' => $this->parser,
                 'doc'    => (string) $url,
             ];
-            
+
             if (isset($options['checkErrorPages']) && $options['checkErrorPages'] === true) {
                 $query['checkerrorpages'] = true;
             }
-            
+
             $response = $this->httpClient->get('', [
                 'query' => $query,
             ]);

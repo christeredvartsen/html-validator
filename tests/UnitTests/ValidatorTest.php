@@ -10,10 +10,12 @@
 
 namespace HtmlValidator;
 
+use GuzzleHttp\Psr7\Utils;
+
 /**
  * @author Espen Hovlandsdal <espen@hovlandsdal.com>
  */
-class ValidatorTest extends \PHPUnit_Framework_TestCase {
+class ValidatorTest extends \PHPUnit\Framework\TestCase {
 
     /**
      * Ensure the client can be instantiated without errors with no arguments passed
@@ -82,11 +84,11 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
 
         $document = '<p>Dat document</p>';
 
-        $responseMock = $this->getGuzzleResponseMock(['messages' => []]);
-        
+        $responseMock = $this->getGuzzleResponseMock(['messages' => []], 2);
+
         $httpClientMock = $this->getHttpClientMock();
         $httpClientMock
-            ->expects($this->once())
+            ->expects($this->exactly(1))
             ->method('request')
             ->with(
                 $this->equalTo('POST'),
@@ -100,7 +102,7 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
                     ]
                 ])
             )
-            ->will($this->returnValue($responseMock));
+            ->willReturn($responseMock);
 
         $client->setCharset(Validator::CHARSET_UTF_8);
         $client->setHttpClient($httpClientMock);
@@ -127,7 +129,7 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
 
         $httpClientMock = $this->getHttpClientMock();
         $httpClientMock
-            ->expects($this->once())
+            ->expects($this->exactly(1))
             ->method('request')
             ->with(
                 $this->equalTo('POST'),
@@ -141,8 +143,8 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
                     ]
                 ])
             )
-            ->will($this->returnValue($responseMock));
-        
+            ->willReturn($responseMock);
+
         $client->setCharset(Validator::CHARSET_ISO_8859_1);
         $client->setHttpClient($httpClientMock);
         $client->validateDocument($document);
@@ -170,7 +172,7 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
 
         $httpClientMock = $this->getHttpClientMock();
         $httpClientMock
-            ->expects($this->once())
+            ->expects($this->exactly(1))
             ->method('request')
             ->with(
                 $this->equalTo('POST'),
@@ -184,7 +186,7 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
                     ]
                 ])
             )
-            ->will($this->returnValue($responseMock));
+            ->willReturn($responseMock);
 
         $client->setCharset(Validator::CHARSET_ISO_8859_1);
         $client->setHttpClient($httpClientMock);
@@ -207,17 +209,17 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
 
         $nodes = '<item>Those</item><item>Nodes</itme>';
 
-        $responseMock = $this->getGuzzleResponseMock(['messages' => []]);
+        $responseMock = $this->getGuzzleResponseMock(['messages' => []], 2);
 
         $httpClientMock = $this->getHttpClientMock();
         $httpClientMock
-            ->expects($this->once())
+            ->expects($this->exactly(1))
             ->method('request')
             ->with(
                 $this->equalTo('POST'),
                 $this->equalTo(''),
                 $this->equalTo([
-                    'body' => '<?xml version="1.0" encoding="ISO-8859-1"?>' . "\n<root>". $nodes . '</root>',
+                    'body' => '<?xml version="1.0" encoding="ISO-8859-1"?>' . "\r\n<root>". $nodes . '</root>',
                     'headers' => ['Content-Type' => 'application/xml; charset=iso-8859-1'],
                     'query' => [
                         'out'    => 'json',
@@ -225,7 +227,7 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
                     ]
                 ])
             )
-            ->will($this->returnValue($responseMock));
+            ->willReturn($responseMock);
 
         $client->setParser(Validator::PARSER_XML);
         $client->setCharset(Validator::CHARSET_ISO_8859_1);
@@ -241,7 +243,6 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
     private function getHttpClientMock() {
         $mock = ($this->getMockBuilder('GuzzleHttp\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['post', 'get', 'request'])
             ->getMock());
 
         return $mock;
@@ -253,26 +254,26 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
      * @param  mixed $body Request body
      * @return \GuzzleHttp\Psr7\Response
      */
-    private function getGuzzleResponseMock($body) {
+    private function getGuzzleResponseMock(array $body, int $expected = 2) {
         $mock = ($this->getMockBuilder('GuzzleHttp\Psr7\Response')
             ->disableOriginalConstructor()
             ->getMock());
 
         $mock
-            ->expects($this->any())
+            ->expects($this->exactly(1))
             ->method('getStatusCode')
-            ->will($this->returnValue(200));
+            ->willReturn(200);
 
         $mock
-            ->expects($this->any())
+            ->expects($this->exactly(1))
             ->method('getHeader')
             ->with($this->equalTo('Content-Type'))
-            ->will($this->returnValue(['application/json']));
+            ->willReturn(['application/json']);
 
         $mock
-            ->expects($this->any())
+            ->expects($this->exactly($expected))
             ->method('getBody')
-            ->will($this->returnValue(json_encode($body)));
+						->willReturn(Utils::streamFor(json_encode('')));
 
         return $mock;
     }

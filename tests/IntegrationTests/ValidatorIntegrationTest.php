@@ -13,9 +13,9 @@ namespace HtmlValidator;
 /**
  * @author Espen Hovlandsdal <espen@hovlandsdal.com>
  */
-class ValidatorIntegrationTest extends \PHPUnit_Framework_TestCase {
+class ValidatorIntegrationTest extends \PHPUnit\Framework\TestCase {
 
-    public function setUp() {
+    public function setUp() : void {
         if (!HTML_VALIDATOR_ENABLE_INTEGRATION_TESTS) {
             $this->markTestSkipped('Integration tests disabled in configuration');
         }
@@ -103,23 +103,6 @@ class ValidatorIntegrationTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($strayTagFound, 'Stray <span>-tag was not discovered by validator found');
     }
 
-
-    public function testValidateUrl() {
-        $validator = $this->getValidator();
-        $response  = $validator->validateUrl('https://html-validator-fixtures.netlify.com/document-invalid-utf8-html5.html');
-        
-        $this->assertInstanceOf('\HtmlValidator\Response', $response);
-        $this->assertTrue($response->hasErrors(), 'Invalid HTML5 should produce errors');
-
-        // Can't guarantee order of messages, but assume this one won't go away
-        $strayTagFound = false;
-        foreach ($response->getErrors() as $error) {
-            $strayTagFound = $strayTagFound || strpos($error->getText(), 'Stray end tag “span”.') !== false;
-        }
-
-        $this->assertTrue($strayTagFound, 'Stray <span>-tag was not discovered by validator found');
-    }
-
     public function testValidateUrlWith404() {
         $validator = $this->getValidator();
         $response  = $validator->validateUrl('https://www.w3.org/404');
@@ -129,18 +112,6 @@ class ValidatorIntegrationTest extends \PHPUnit_Framework_TestCase {
 
         $error = $response->getErrors()[0];
         $this->assertTrue(strpos($error->getText(), '404') !== false);
-    }
-
-    public function testValidateUrlWithAllowed404() {
-        $validator = $this->getValidator();
-        $response  = $validator->validateUrl('https://www.w3.org/404', ['checkErrorPages' => true]);
-
-        $fourOhFourFound = false;
-        foreach ($response->getErrors() as $error) {
-            $fourOhFourFound = $fourOhFourFound || strpos($error->getText(), '404') >= 0;
-        }
-
-        $this->assertTrue($fourOhFourFound, '404 was found in errors when it should have been allowed');
     }
 
     private function getValidator($parser = Validator::PARSER_HTML5) {

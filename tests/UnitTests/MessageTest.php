@@ -13,7 +13,7 @@ namespace HtmlValidator;
 /**
  * @author Espen Hovlandsdal <espen@hovlandsdal.com>
  */
-class MessageTest extends \PHPUnit_Framework_TestCase {
+class MessageTest extends \PHPUnit\Framework\TestCase {
 
     /**
      * Test construction and population of a message instance

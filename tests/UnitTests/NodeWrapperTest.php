@@ -15,7 +15,7 @@ use DOMDocument;
 /**
  * @author Espen Hovlandsdal <espen@hovlandsdal.com>
  */
-class NodeWrapperTest extends \PHPUnit_Framework_TestCase {
+class NodeWrapperTest extends \PHPUnit\Framework\TestCase {
     /**
      * NodeWrapper instance
      *
@@ -26,14 +26,14 @@ class NodeWrapperTest extends \PHPUnit_Framework_TestCase {
     /**
      * Set up the wrapper
      */
-    public function setUp() {
+    public function setUp() : void {
         $this->wrapper = new NodeWrapper();
     }
 
     /**
      * Tear down the wrapper
      */
-    public function tearDown() {
+    public function tearDown() : void {
         $this->wrapper = null;
     }
 

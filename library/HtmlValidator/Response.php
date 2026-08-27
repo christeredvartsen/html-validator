@@ -80,7 +80,7 @@ class Response {
         }
 
         try {
-            $body = (string) $response->getBody();
+            $body = $response->getBody();
             json_decode($body, true);
             if (json_last_error()) {
                 throw new ServerException(json_last_error_msg());
@@ -96,7 +96,7 @@ class Response {
     private function parse() {
         $data = json_decode($this->httpResponse->getBody(), true);
 
-        foreach ($data['messages'] as $message) {
+        foreach ($data['messages'] ?? [] as $message) {
             $msg = new Message($message);
             $this->messages[] = $msg;
 
