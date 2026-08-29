@@ -1,330 +1,298 @@
-<?php
-/**
- * This file is part of the html-validator package.
- *
- * (c) Espen Hovlandsdal <espen@hovlandsdal.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+<?php declare(strict_types=1);
 
 namespace HtmlValidator;
 
-/**
- * HTML Validator message
- *
- * @author Espen Hovlandsdal <espen@hovlandsdal.com>
- * @copyright Copyright (c) Espen Hovlandsdal
- * @license http://www.opensource.org/licenses/mit-license MIT License
- * @link https://github.com/rexxars/html-validator
- */
-class Message {
+use HtmlValidator\Exception\InvalidArgumentException;
+use Stringable;
+
+use function array_key_exists;
+use function in_array;
+use function is_int;
+use function is_string;
+use function ord;
+use function sprintf;
+use function strlen;
+
+use const ENT_COMPAT;
+use const PHP_EOL;
+
+class Message implements Stringable
+{
+    private string $type;
+    private int $firstLine;
+    private int $lastLine;
+    private int $firstColumn;
+    private int $lastColumn;
+    private int $hiliteStart;
+    private int $hiliteLength;
+    private string $text;
+    private string $extract;
 
     /**
-     * Type of error
-     *
-     * @var string
-     */
-    private $type;
-
-    /**
-     * Line number of where the error first occured
-     *
-     * @var int
-     */
-    private $firstLine;
-
-    /**
-     * Line number of where the error last occured
-     *
-     * @var int
-     */
-    private $lastLine;
-
-    /**
-     * First column index of where the error occured
-     *
-     * @var int
-     */
-    private $firstColumn;
-
-    /**
-     * Last column index of where the error occured
-     *
-     * @var int
-     */
-    private $lastColumn;
-
-    /**
-     * String offset within extract where the highlight should be started
-     *
-     * @var int
-     */
-    private $hiliteStart;
-
-    /**
-     * Length of highlighted string, within extract
-     *
-     * @var int
-     */
-    private $hiliteLength;
-
-    /**
-     * Text describing the error
-     *
-     * @var string
-     */
-    private $text;
-
-    /**
-     * An extract of an area where the error occured
-     *
-     * @var string
-     */
-    private $extract;
-
-    /**
-     * Callable highlighter function, overridable by user
-     *
-     * @var callable
+     * @var ?callable(string,int,int):string
      */
     private $highlighter;
 
     /**
-     * CSS class name to use for the highlighted substring
-     * (Only used if no custom highlighter is set)
+     * CSS class name to use for the highlighted substring.
      *
-     * @var string
+     * Only used if no custom highlighter is set.
      */
-    private $highlightClassName = 'highlight';
+    private string $highlightClassName = 'highlight';
 
     /**
-     * Default message values
+     * @param array<mixed,mixed> $data
      *
-     * @var array
-     */
-    private $defaults = array(
-        'lastLine'     => 0,
-        'firstColumn'  => 0,
-        'lastColumn'   => 0,
-        'hiliteStart'  => 0,
-        'hiliteLength' => 0,
-        'message'      => '',
-        'extract'      => '',
-    );
-
-    /**
-     * Constructs a new message object
+     * @throws InvalidArgumentException
      *
-     * @param array $info
+     * @see https://github.com/validator/validator/wiki/Output-%C2%BB-JSON
      */
-    public function __construct(array $info) {
-        $info = array_merge($this->defaults, $info);
+    public function __construct(array $data = [])
+    {
+        if (empty($data['type']) || !is_string($data['type'])) {
+            throw new InvalidArgumentException('Message type must be a non-empty string.');
+        }
 
-        $this->type = $info['type'];
-        $this->firstLine = isset($info['firstLine']) ? $info['firstLine'] : $info['lastLine'];
-        $this->lastLine = $info['lastLine'];
-        $this->firstColumn = $info['firstColumn'];
-        $this->lastColumn = $info['lastColumn'];
-        $this->hiliteStart = $info['hiliteStart'];
-        $this->hiliteLength = $info['hiliteLength'];
-        $this->text = $info['message'];
-        $this->extract = $info['extract'];
+        if (!in_array($data['type'], ['info', 'error', 'non-document-error'], true)) {
+            throw new InvalidArgumentException('Message type must be info, error, or non-document-error.');
+        }
+
+        $this->type = $data['type'];
+        $this->lastLine = $this->getInteger($data, 'lastLine');
+        $this->firstLine = $this->getInteger($data, 'firstLine', $this->lastLine);
+        $this->firstColumn = $this->getInteger($data, 'firstColumn');
+        $this->lastColumn = $this->getInteger($data, 'lastColumn');
+        $this->hiliteStart = $this->getInteger($data, 'hiliteStart');
+        $this->hiliteLength = $this->getInteger($data, 'hiliteLength');
+        $this->text = $this->getString($data, 'message');
+        $this->extract = $this->getString($data, 'extract');
     }
 
     /**
-     * Get the message type for this message
-     *
-     * @return string
+     * Get the message's general class: info, error, or non-document-error.
      */
-    public function getType() {
+    public function getType(): string
+    {
         return $this->type;
     }
 
     /**
-     * Get line number of first line where the error occured
-     *
-     * @return int
+     * Get the one-based first line of the associated source range.
      */
-    public function getFirstLine() {
+    public function getFirstLine(): int
+    {
         return $this->firstLine;
     }
 
     /**
-     * Get line number of last line where the error occured
-     *
-     * @return int
+     * Get the one-based last line of the associated source range.
      */
-    public function getLastLine() {
+    public function getLastLine(): int
+    {
         return $this->lastLine;
     }
 
     /**
-     * Get start column where the error occured
-     *
-     * @return int
+     * Get the one-based first column of the associated source range, measured in UTF-16 code units.
      */
-    public function getFirstColumn() {
+    public function getFirstColumn(): int
+    {
         return $this->firstColumn;
     }
 
     /**
-     * Get last column where the error occured
-     *
-     * @return int
+     * Get the one-based last column of the associated source range, measured in UTF-16 code units.
      */
-    public function getLastColumn() {
+    public function getLastColumn(): int
+    {
         return $this->lastColumn;
     }
 
     /**
-     * Get a text description of the message
-     *
-     * @return string
+     * Get the concise natural-language description of the message.
      */
-    public function getText() {
+    public function getText(): string
+    {
         return $this->text;
     }
 
     /**
-     * Get an extract of the problematic area
-     *
-     * @return string
+     * Get the source extract around the associated source range.
      */
-    public function getExtract() {
+    public function getExtract(): string
+    {
         return $this->extract;
     }
 
     /**
-     * Get index offset of substring to highlight (within extract)
-     *
-     * @return int
+     * Get the UTF-16 code-unit index in the source extract where highlighting starts.
      */
-    public function getHighlightStart() {
+    public function getHighlightStart(): int
+    {
         return $this->hiliteStart;
     }
 
     /**
-     * Get length of the substring to highlight
-     *
-     * @return int
+     * Get the highlighted portion's length in UTF-16 code units.
      */
-    public function getHighlightLength() {
+    public function getHighlightLength(): int
+    {
         return $this->hiliteLength;
     }
 
     /**
-     * Set function to use for highlighting a substring within a string
-     * Callable arguments:
-     *  (string) $string - The full string in which to find the substring
-     *  (int)    $start  - Start index of the substring to highlight
-     *  (int)    $length - Length of substring to highlight
+     * Set function to use for highlighting a substring within a string.
      *
-     * @param callable $highlighter
-     * @throws Exception
-     * @return Message
+     * Arguments for the function:
+     *
+     * string $str    The full string in which to find the substring
+     * int    $start  Start index of the substring to highlight
+     * int    $length Length of substring to highlight
+     *
+     * @param callable(string,int,int):string $highlighter
      */
-    public function setHighlighter($highlighter) {
-        if (!is_callable($highlighter)) {
-            throw new Exception('Highlighter passed to setHighlighter() must be callable');
-        }
-
+    public function setHighlighter(callable $highlighter): static
+    {
         $this->highlighter = $highlighter;
-        return $this;
-    }
-
-    /**
-     * Set the class name to use for the highlighted span.
-     * Default: "highlight"
-     *
-     * @param  string $className Valid CSS class name
-     * @return Message
-     */
-    public function setHighlightClassName($className) {
-        $this->highlightClassName = (string) $className;
 
         return $this;
     }
 
     /**
-     * Highlight the given string, enclosing it in a span
-     *
-     * @param  string $str    String to highlight
-     * @param  int    $start  Start index of substring to highlight
-     * @param  int    $length Length of substring to highlight
-     * @return string
+     * Set the CSS class name to use for the highlighted span.
      */
-    private function highlight($str, $start, $length) {
-        $parts = array(
-            substr($str, 0, $start),
-            substr($str, $start, $length),
-            substr($str, $start + $length)
-        );
+    public function setHighlightClassName(string $className): static
+    {
+        $this->highlightClassName = $className;
 
-        $parts = array_map('htmlentities', $parts);
-
-        $highlighted  = $parts[0] . '<span class="' . $this->highlightClassName . '">';
-        $highlighted .= $parts[1] . '</span>' . $parts[2];
-
-        return $highlighted;
+        return $this;
     }
 
     /**
-     * Format the message in readable format
-     *
-     * @param  boolean $html Whether to return an HTML-representation or not
-     * @return string
+     * Format the message.
      */
-    public function format($html = false) {
-        $format  = '%s: %s';
+    public function format(bool $withHtml = false): string
+    {
+        $format = '%s: %s';
 
         if ($this->lastLine > 0) {
             $format .= PHP_EOL;
-            $format .= 'From line %d, column %d; ' ;
+            $format .= 'From line %d, column %d; ';
             $format .= 'to line %d, column %d';
         }
 
         $message = sprintf(
             $format,
-            $html ? '<strong>' . $this->type . '</strong>' : $this->type,
-            $html ? htmlentities($this->text, ENT_COMPAT, 'UTF-8') : $this->text,
+            $withHtml ? '<strong>'.$this->type.'</strong>' : $this->type,
+            $withHtml ? htmlentities($this->text, ENT_COMPAT, 'UTF-8') : $this->text,
             $this->firstLine,
             $this->firstColumn,
             $this->lastLine,
-            $this->lastColumn
+            $this->lastColumn,
         );
 
-        if (!$html) {
-            return $message . PHP_EOL . $this->extract;
+        if (!$withHtml) {
+            return $message.PHP_EOL.$this->extract;
         }
 
-        // Check if the user has specified a custom highlighter
-        if ($this->highlighter) {
-            $highlighter = $this->highlighter;
-            $extract = $highlighter($this->extract, $this->hiliteStart, $this->hiliteLength);
-        } else {
-            $extract = $this->highlight($this->extract, $this->hiliteStart, $this->hiliteLength);
-        }
+        $cb = $this->highlighter ?? $this->highlight(...);
+        $extract = $cb($this->extract, $this->hiliteStart, $this->hiliteLength);
+        $message .= PHP_EOL.$extract;
 
-        $message .= PHP_EOL . $extract;
         return nl2br($message, false);
     }
 
     /**
-     * Transforms message to a human-readable HTML string
-     *
-     * @return string
+     * Returns the message as a human-readable HTML string.
      */
-    public function toHTML() {
+    public function toHTML(): string
+    {
         return $this->format(true);
     }
 
     /**
-     * Transforms message to a human-readable string
-     *
-     * @return string
+     * Returns the message as a human-readable string.
      */
-    public function __toString() {
+    public function __toString(): string
+    {
         return $this->format();
+    }
+
+    /**
+     * @param array<mixed,mixed> $data
+     *
+     * @throws InvalidArgumentException
+     */
+    private function getInteger(array $data, string $key, int $default = 0): int
+    {
+        if (!array_key_exists($key, $data)) {
+            return $default;
+        }
+
+        if (!is_int($data[$key])) {
+            throw new InvalidArgumentException(sprintf('Message %s must be an integer.', $key));
+        }
+
+        return $data[$key];
+    }
+
+    /**
+     * @param array<mixed,mixed> $data
+     *
+     * @throws InvalidArgumentException
+     */
+    private function getString(array $data, string $key): string
+    {
+        if (!array_key_exists($key, $data)) {
+            return '';
+        }
+
+        if (!is_string($data[$key])) {
+            throw new InvalidArgumentException(sprintf('Message %s must be a string.', $key));
+        }
+
+        return $data[$key];
+    }
+
+    private function highlight(string $str, int $start, int $length): string
+    {
+        $startOffset = $this->getUtf8ByteOffset($str, $start);
+        $endOffset = $this->getUtf8ByteOffset($str, $start + $length);
+        $parts = array_map('htmlentities', [
+            substr($str, 0, $startOffset),
+            substr($str, $startOffset, $endOffset - $startOffset),
+            substr($str, $endOffset),
+        ]);
+
+        return sprintf(
+            '%s<span class="%s">%s</span>%s',
+            $parts[0],
+            $this->highlightClassName,
+            $parts[1],
+            $parts[2],
+        );
+    }
+
+    /**
+     * Convert a validator.nu UTF-16 code-unit offset into a UTF-8 byte offset.
+     *
+     * PHP's substr() operates on bytes, while validator.nu reports highlights in UTF-16 code units.
+     * UTF-8 characters use one to four bytes; only four-byte UTF-8 characters, which represent code
+     * points outside the BMP, use two UTF-16 code units.
+     */
+    private function getUtf8ByteOffset(string $str, int $utf16Offset): int
+    {
+        $byteOffset = 0;
+        $units = 0;
+        $length = strlen($str);
+
+        while ($byteOffset < $length && $units < $utf16Offset) {
+            $byte = ord($str[$byteOffset]);
+            $byteLength = $byte < 0x80 ? 1 : ($byte < 0xE0 ? 2 : ($byte < 0xF0 ? 3 : 4));
+            $units += 4 === $byteLength ? 2 : 1;
+            $byteOffset += $byteLength;
+        }
+
+        return $byteOffset;
     }
 }

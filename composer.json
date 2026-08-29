@@ -30,16 +30,23 @@
   "require": {
     "php": ">=8.3",
     "ext-json": "*",
-    "ext-dom": "*",
     "guzzlehttp/guzzle": "^8.1"
   },
   "require-dev": {
     "ext-dom": "*",
-    "phpunit/phpunit": "^12.5"
+    "friendsofphp/php-cs-fixer": "^3.95",
+    "imbo/imbo-coding-standard": "^3.0",
+    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-deprecation-rules": "^2.0",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpunit/phpunit": "^12.5",
+    "ramsey/conventional-commits": "^1.7",
+    "symfony/var-dumper": "^7.4"
   },
   "autoload": {
     "psr-4": {
-      "HtmlValidator\\": "src"
+      "HtmlValidator\\": "src/"
     }
   },
   "autoload-dev": {
@@ -48,16 +55,21 @@
     }
   },
   "scripts": {
-    "phpunit": "vendor/bin/phpunit",
-    "phpunit:coverage": "@phpunit --coverage-html build/coverage",
-    "test": [
-      "@phpunit"
-    ],
     "ci": [
-      "@phpunit"
-    ]
+      "@cs",
+      "@sa",
+      "@test"
+    ],
+    "cs": "vendor/bin/php-cs-fixer check --diff",
+    "cs:fix": "vendor/bin/php-cs-fixer fix --diff",
+    "sa": "vendor/bin/phpstan analyse",
+    "test": "vendor/bin/phpunit",
+    "test:coverage": "@test --coverage-html build/coverage"
   },
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
   }
 }

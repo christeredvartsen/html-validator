@@ -1,0 +1,7 @@
+parameters:
+	level: 10
+	paths:
+		- .php-cs-fixer.dist.php
+		- scripts
+		- src
+		- tests

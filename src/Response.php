@@ -1,199 +1,182 @@
-<?php
-/**
- * This file is part of the html-validator package.
- *
- * (c) Espen Hovlandsdal <espen@hovlandsdal.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+<?php declare(strict_types=1);
 
 namespace HtmlValidator;
 
-use Psr\Http\Message\ResponseInterface as HttpResponse;
+use HtmlValidator\Exception\InvalidArgumentException;
 use HtmlValidator\Exception\ServerException;
-use RuntimeException;
+use JsonException;
+use Psr\Http\Message\ResponseInterface as HttpResponse;
+use Stringable;
 
-/**
- * HTML Validator response
- *
- * @author Espen Hovlandsdal <espen@hovlandsdal.com>
- * @copyright Copyright (c) Espen Hovlandsdal
- * @license http://www.opensource.org/licenses/mit-license MIT License
- * @link https://github.com/rexxars/html-validator
- */
-class Response {
+use function explode;
+use function is_array;
+use function sprintf;
+use function strtolower;
+use function trim;
+
+use const JSON_OBJECT_AS_ARRAY;
+use const JSON_THROW_ON_ERROR;
+use const PHP_EOL;
+
+class Response implements Stringable
+{
+    /**
+     * @var list<Message>
+     */
+    private array $errors = [];
 
     /**
-     * HTTP response
-     *
-     * @var HttpResponse
+     * @var list<Message>
      */
-    private $httpResponse;
+    private array $warnings = [];
 
     /**
-     * List of errors encountered
-     *
-     * @var array
+     * @var list<Message>
      */
-    private $errors = array();
+    private array $messages = [];
 
-    /**
-     * List of warnings encountered
-     *
-     * @var array
-     */
-    private $warnings = array();
-
-    /**
-     * List of all messages encountered
-     *
-     * @var array
-     */
-    private $messages = array();
-
-    /**
-     * Constructs the response and parses it into usable data
-     *
-     * @param HttpResponse $response
-     * @throws ServerException
-     */
-    public function __construct(HttpResponse $response) {
-        $this->httpResponse = $response;
-
-        $this->validateResponse($response);
-        $this->parse();
+    public function __construct(HttpResponse $response)
+    {
+        $this->parseMessages($this->validateResponse($response));
     }
 
     /**
-     * Validate the HTTP response and throw exceptions on errors
-     *
-     * @param HttpResponse $response
-     * @throws ServerException
+     * Returns whether the markup the user tried to validate had any errors.
      */
-    private function validateResponse($response) {
-        if ($response->getStatusCode() !== 200) {
-            $statusCode = $response->getStatusCode();
-            throw new ServerException('Server responded with HTTP status ' . $statusCode, $statusCode);
-        } else if (strpos($response->getHeader('Content-Type')[0], 'application/json') === false) {
-            throw new ServerException('Server did not respond with the expected content-type (application/json)');
-        }
-
-        try {
-            $body = (string) $response->getBody();
-            json_decode($body, true);
-            if (json_last_error()) {
-                throw new ServerException(json_last_error_msg());
-            }
-        } catch (RuntimeException $e) {
-            throw new ServerException($e->getMessage());
-        }
-    }
-
-    /**
-     * Parse the received response into a usable format
-     */
-    private function parse() {
-        $data = json_decode($this->httpResponse->getBody(), true);
-
-        foreach ($data['messages'] as $message) {
-            $msg = new Message($message);
-            $this->messages[] = $msg;
-
-            if ($message['type'] === 'error' || $message['type'] === 'non-document-error') {
-                $this->errors[] = $msg;
-            } else if ($message['type'] === 'warning') {
-                $this->warnings[] = $msg;
-            }
-        }
-    }
-
-    /**
-     * Returns whether the markup the user tried to validate had any errors
-     *
-     * @return boolean
-     */
-    public function hasErrors() {
+    public function hasErrors(): bool
+    {
         return !empty($this->errors);
     }
 
     /**
-     * Returns whether the markup the user tried to validate had any warnings
-     *
-     * @return boolean
+     * Returns whether the markup the user tried to validate had any warnings.
      */
-    public function hasWarnings() {
+    public function hasWarnings(): bool
+    {
         return !empty($this->warnings);
     }
 
     /**
-     * Returns whether the markup the user tried to validate resulted in any messages
-     *
-     * @return boolean
+     * Returns whether the markup the user tried to validate resulted in any messages.
      */
-    public function hasMessages() {
+    public function hasMessages(): bool
+    {
         return !empty($this->messages);
     }
 
     /**
-     * Returns all encountered errors
+     * Returns all encountered errors.
      *
-     * @return array
+     * @return list<Message>
      */
-    public function getErrors() {
+    public function getErrors(): array
+    {
         return $this->errors;
     }
 
     /**
-     * Returns all encountered warnings
+     * Returns all encountered warnings.
      *
-     * @return array
+     * @return list<Message>
      */
-    public function getWarnings() {
+    public function getWarnings(): array
+    {
         return $this->warnings;
     }
 
     /**
-     * Returns all encountered messages
+     * Returns all encountered messages.
      *
-     * @return array
+     * @return list<Message>
      */
-    public function getMessages() {
+    public function getMessages(): array
+    {
         return $this->messages;
     }
 
     /**
-     * Returns a string-representation of all messages encountered
-     *
-     * @param  boolean $useHTML Whether to use HTML for formatting
-     * @return string
+     * Format the messages.
      */
-    public function format($useHTML = false) {
-        $msgs = array();
-
+    public function format(bool $withHtml = false): string
+    {
+        $msgs = [];
         foreach ($this->messages as $msg) {
-            $msgs[] = $msg->format($useHTML);
+            $msgs[] = $msg->format($withHtml);
         }
 
-        return implode(PHP_EOL . PHP_EOL, $msgs);
+        return implode(PHP_EOL.PHP_EOL, $msgs);
     }
 
     /**
-     * Returns an HTML-representation of all messages encountered
-     *
-     * @return string
+     * Returns the messages as a human-readable HTML string.
      */
-    public function toHTML() {
+    public function toHTML(): string
+    {
         return $this->format(true);
     }
 
     /**
-     * Returns a string containing all the messages encountered
-     *
-     * @return string
+     * Returns the messages as a human-readable string.
      */
-    public function __toString() {
+    public function __toString(): string
+    {
         return $this->format();
     }
 
+    /**
+     * @return array<mixed,mixed>
+     *
+     * @throws ServerException
+     */
+    private function validateResponse(HttpResponse $response): array
+    {
+        if (200 !== $response->getStatusCode()) {
+            $statusCode = $response->getStatusCode();
+            throw new ServerException(sprintf('Expected HTTP 200, got: %d', $statusCode), $statusCode);
+        }
+
+        $contentType = $response->getHeaderLine('Content-Type');
+        $mediaType = strtolower(trim(explode(';', $contentType, 2)[0]));
+        if ('application/json' !== $mediaType) {
+            throw new ServerException(sprintf('Expected Content-Type application/json, got: %s', $contentType));
+        }
+
+        $body = (string) $response->getBody();
+        try {
+            $data = json_decode($body, flags: JSON_THROW_ON_ERROR | JSON_OBJECT_AS_ARRAY);
+        } catch (JsonException $e) {
+            throw new ServerException(sprintf('Invalid JSON in HTTP response: %s', $e->getMessage()), previous: $e);
+        }
+
+        if (!is_array($data) || !isset($data['messages']) || !is_array($data['messages'])) {
+            throw new ServerException('Invalid JSON structure from validator.');
+        }
+
+        return $data['messages'];
+    }
+
+    /**
+     * @param array<mixed,mixed> $messages
+     */
+    private function parseMessages(array $messages): void
+    {
+        foreach ($messages as $message) {
+            if (!is_array($message)) {
+                continue;
+            }
+
+            try {
+                $msg = new Message($message);
+            } catch (InvalidArgumentException $e) {
+                continue;
+            }
+
+            $this->messages[] = $msg;
+            if ('error' === $msg->getType() || 'non-document-error' === $msg->getType()) {
+                $this->errors[] = $msg;
+            } elseif ('info' === $msg->getType() && 'warning' === ($message['subtype'] ?? null)) {
+                $this->warnings[] = $msg;
+            }
+        }
+    }
 }
