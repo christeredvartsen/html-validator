@@ -2,7 +2,8 @@
 
 namespace HtmlValidator;
 
-use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use HtmlValidator\Exception\ServerException;
 
@@ -10,14 +11,14 @@ class Validator
 {
     public const string DEFAULT_VALIDATOR_URL = 'https://validator.nu';
 
-    private HttpClient $httpClient;
+    private ClientInterface $httpClient;
     private Parser $parser;
     private Charset $charset = Charset::UTF8;
     private NodeWrapper $nodeWrapper;
 
     public function __construct(string $validatorUrl = self::DEFAULT_VALIDATOR_URL, Parser $parser = Parser::HTML5)
     {
-        $this->httpClient = new HttpClient([
+        $this->httpClient = new Client([
             'base_uri' => $validatorUrl,
             'headers' => ['User-Agent' => 'christeredvartsen/html-validator'],
         ]);
@@ -27,7 +28,7 @@ class Validator
         $this->parser = $parser;
     }
 
-    public function setHttpClient(HttpClient $httpClient): static
+    public function setHttpClient(ClientInterface $httpClient): static
     {
         $this->httpClient = $httpClient;
 

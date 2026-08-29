@@ -2,7 +2,7 @@
 
 namespace HtmlValidator;
 
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
@@ -44,7 +44,7 @@ class ValidatorTest extends TestCase
     {
         $document = '<p>Dat document</p>';
 
-        $httpClient = $this->createMock(Client::class);
+        $httpClient = $this->createMock(ClientInterface::class);
         $httpClient
             ->expects($this->once())
             ->method('request')
@@ -69,7 +69,7 @@ class ValidatorTest extends TestCase
     {
         $document = '<p>Dat document</p>';
 
-        $httpClient = $this->createMock(Client::class);
+        $httpClient = $this->createMock(ClientInterface::class);
         $httpClient
             ->expects($this->once())
             ->method('request')
@@ -93,7 +93,7 @@ class ValidatorTest extends TestCase
     {
         $nodes = '<item>Those</item><item>Nodes</itme>';
 
-        $httpClient = $this->createMock(Client::class);
+        $httpClient = $this->createMock(ClientInterface::class);
         $httpClient
             ->expects($this->once())
             ->method('request')
@@ -117,7 +117,7 @@ class ValidatorTest extends TestCase
     public function testValidateUrlNormalizesGuzzleExceptions(): void
     {
         $exception = new ConnectException('Connection failed', new Request('GET', 'https://validator.nu'));
-        $httpClient = $this->createMock(Client::class);
+        $httpClient = $this->createMock(ClientInterface::class);
         $httpClient
             ->expects($this->once())
             ->method('request')
@@ -137,7 +137,7 @@ class ValidatorTest extends TestCase
     public function testValidateDocumentNormalizesGuzzleExceptions(): void
     {
         $exception = new ConnectException('Connection failed', new Request('POST', 'https://validator.nu'));
-        $httpClient = $this->createMock(Client::class);
+        $httpClient = $this->createMock(ClientInterface::class);
         $httpClient
             ->expects($this->once())
             ->method('request')
