@@ -2,10 +2,6 @@
 
 namespace HtmlValidator;
 
-use HtmlValidator\Exception\InvalidArgumentException;
-
-use function sprintf;
-
 use const PHP_EOL;
 
 class NodeWrapper
@@ -13,34 +9,31 @@ class NodeWrapper
     /**
      * Wrap a document in a surrounding document.
      *
-     * @param string  $parser  Parser name (HtmlValidator\Validator::PARSER_*)
-     * @param string  $nodes   Nodes to wrap
-     * @param ?string $charset Charset to use
-     *
-     * @throws InvalidArgumentException
+     * @param Parser   $parser  Parser to use
+     * @param string   $nodes   Nodes to wrap
+     * @param ?Charset $charset Charset to use
      */
-    public function wrap(string $parser, string $nodes, ?string $charset = null): string
+    public function wrap(Parser $parser, string $nodes, ?Charset $charset = null): string
     {
         return match ($parser) {
-            Validator::PARSER_XML,
-            Validator::PARSER_XMLDTD => $this->wrapInXmlDocument($nodes, $charset),
-            Validator::PARSER_HTML,
-            Validator::PARSER_HTML5 => $this->wrapInHtml5Document($nodes, $charset),
-            Validator::PARSER_HTML4,
-            Validator::PARSER_HTML4TR => $this->wrapInHtml4Document($nodes, $charset, $parser),
-            default => throw new InvalidArgumentException(sprintf('Unknown parser: "%s"', $parser)),
+            Parser::XML,
+            Parser::XMLDTD => $this->wrapInXmlDocument($nodes, $charset),
+            Parser::HTML,
+            Parser::HTML5 => $this->wrapInHtml5Document($nodes, $charset),
+            Parser::HTML4,
+            Parser::HTML4TR => $this->wrapInHtml4Document($nodes, $charset, $parser),
         };
     }
 
     /**
      * Wraps a set of XML nodes in an XML-document.
      *
-     * @param string  $nodes   One or more XML-nodes, as a string
-     * @param ?string $charset Charset to specify in XML-document
+     * @param string   $nodes   One or more XML-nodes, as a string
+     * @param ?Charset $charset Charset to specify in XML-document
      */
-    private function wrapInXmlDocument(string $nodes, ?string $charset = null): string
+    private function wrapInXmlDocument(string $nodes, ?Charset $charset = null): string
     {
-        $charset = strtoupper($charset ?: Validator::CHARSET_UTF_8);
+        $charset = strtoupper(($charset ?? Charset::UTF8)->value);
 
         $document = '<?xml version="1.0" encoding="'.$charset.'"?>'.PHP_EOL;
         $document .= '<root>'.$nodes.'</root>';
@@ -51,12 +44,12 @@ class NodeWrapper
     /**
      * Wraps a set of HTML nodes in an HTML5-document.
      *
-     * @param string  $nodes   One or more HTML-nodes, as a string
-     * @param ?string $charset Charset to specify in meta tag
+     * @param string   $nodes   One or more HTML-nodes, as a string
+     * @param ?Charset $charset Charset to specify in meta tag
      */
-    private function wrapInHtml5Document(string $nodes, ?string $charset = null): string
+    private function wrapInHtml5Document(string $nodes, ?Charset $charset = null): string
     {
-        $charset = strtolower($charset ?: Validator::CHARSET_UTF_8);
+        $charset = strtolower(($charset ?? Charset::UTF8)->value);
 
         $document = '<!DOCTYPE html>'.PHP_EOL;
         $document .= '<html><head>'.PHP_EOL;
@@ -70,19 +63,19 @@ class NodeWrapper
     /**
      * Wraps a set of HTML nodes in an HTML4-document.
      *
-     * @param string  $nodes   One or more HTML-nodes, as a string
-     * @param ?string $charset Charset to specify in meta tag
-     * @param ?string $parser  Validator parser used
+     * @param string   $nodes   One or more HTML-nodes, as a string
+     * @param ?Charset $charset Charset to specify in meta tag
+     * @param Parser   $parser  Validator parser used
      */
-    private function wrapInHtml4Document(string $nodes, ?string $charset = null, ?string $parser = null): string
+    private function wrapInHtml4Document(string $nodes, ?Charset $charset, Parser $parser): string
     {
-        if (Validator::PARSER_HTML4TR === $parser) {
+        if (Parser::HTML4TR === $parser) {
             $doctype = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
         } else {
             $doctype = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">';
         }
 
-        $charset = strtolower($charset ?: Validator::CHARSET_UTF_8);
+        $charset = strtolower(($charset ?? Charset::UTF8)->value);
 
         $document = $doctype.PHP_EOL;
         $document .= '<html><head>'.PHP_EOL;

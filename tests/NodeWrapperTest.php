@@ -21,7 +21,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsSingleXmlNodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_XML,
+            Parser::XML,
             '<item>Moo</item>',
         );
 
@@ -42,7 +42,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsMultipleXmlNodesCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_XML,
+            Parser::XML,
             '<item>Foo</item><item>Bar</item>',
         );
 
@@ -68,9 +68,9 @@ class NodeWrapperTest extends TestCase
     {
         $document = new DOMDocument();
         $document->loadXML($this->wrapper->wrap(
-            Validator::PARSER_XML,
+            Parser::XML,
             '<item>Moo</item>',
-            'iso-8859-1',
+            Charset::ISO88591,
         ));
 
         $this->assertSame('ISO-8859-1', $document->encoding, 'The XML declaration should use the requested charset.');
@@ -79,7 +79,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsSingleHtml5NodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML5,
+            Parser::HTML5,
             '<p>Moo</p>',
         );
 
@@ -105,7 +105,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsMultipleHtml5NodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML5,
+            Parser::HTML5,
             '<p>Foo</p><p>Bar</p>',
         );
 
@@ -135,9 +135,9 @@ class NodeWrapperTest extends TestCase
     public function testWrapsHtml5NodesInGivenCharset(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML,
+            Parser::HTML,
             '<span>Moo</span>',
-            'ISO-8859-1',
+            Charset::ISO88591,
         );
 
         // Expecting: <meta charset="iso-8859-1">
@@ -149,7 +149,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsSingleHtml4NodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML4,
+            Parser::HTML4,
             '<p>Moo</p>',
         );
 
@@ -176,7 +176,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsMultipleHtml4NodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML4,
+            Parser::HTML4,
             '<p>Foo</p><p>Bar</p>',
         );
 
@@ -207,9 +207,9 @@ class NodeWrapperTest extends TestCase
     public function testWrapsHtml4NodesInGivenCharset(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML4,
+            Parser::HTML4,
             '<span>Moo</span>',
-            'ISO-8859-1',
+            Charset::ISO88591,
         );
 
         // Expecting: <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
@@ -221,7 +221,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsSingleHtml4TrNodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML4TR,
+            Parser::HTML4TR,
             '<p>Moo</p>',
         );
 
@@ -248,7 +248,7 @@ class NodeWrapperTest extends TestCase
     public function testWrapsMultipleHtml4TrNodeCorrectly(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML4TR,
+            Parser::HTML4TR,
             '<p>Foo</p><p>Bar</p>',
         );
 
@@ -279,9 +279,9 @@ class NodeWrapperTest extends TestCase
     public function testWrapsHtml4TrNodesInGivenCharset(): void
     {
         $wrapped = $this->wrapper->wrap(
-            Validator::PARSER_HTML4TR,
+            Parser::HTML4TR,
             '<span>Moo</span>',
-            'ISO-8859-1',
+            Charset::ISO88591,
         );
 
         // Expecting: <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">

@@ -6,7 +6,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
-use HtmlValidator\Exception\InvalidArgumentException;
 use HtmlValidator\Exception\ServerException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Stub;
@@ -28,24 +27,17 @@ class ValidatorTest extends TestCase
     public function testCanSetAndGetParsers(): void
     {
         $validator = new Validator();
-        $this->assertSame(Validator::PARSER_HTML5, $validator->getParser(), 'HTML5 should be the default parser.');
-        $this->assertSame($validator, $validator->setParser(Validator::PARSER_XML), 'Setting the parser should be fluent.');
-        $this->assertSame(Validator::PARSER_XML, $validator->getParser(), 'The configured parser should be returned.');
-    }
-
-    public function testWillRejectUnknownParser(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-
-        (new Validator())->setParser('unknown');
+        $this->assertSame(Parser::HTML5, $validator->getParser(), 'HTML5 should be the default parser.');
+        $this->assertSame($validator, $validator->setParser(Parser::XML), 'Setting the parser should be fluent.');
+        $this->assertSame(Parser::XML, $validator->getParser(), 'The configured parser should be returned.');
     }
 
     public function testCanSetAndGetCharset(): void
     {
         $validator = new Validator();
-        $this->assertSame(Validator::CHARSET_UTF_8, $validator->getCharset(), 'UTF-8 should be the default charset.');
-        $this->assertSame($validator, $validator->setCharset(Validator::CHARSET_ISO_8859_1), 'Setting the charset should be fluent.');
-        $this->assertSame(Validator::CHARSET_ISO_8859_1, $validator->getCharset(), 'The configured charset should be returned.');
+        $this->assertSame(Charset::UTF8, $validator->getCharset(), 'UTF-8 should be the default charset.');
+        $this->assertSame($validator, $validator->setCharset(Charset::ISO88591), 'Setting the charset should be fluent.');
+        $this->assertSame(Charset::ISO88591, $validator->getCharset(), 'The configured charset should be returned.');
     }
 
     public function testValidateDocumentSendsCorrectContentType(): void
@@ -92,7 +84,7 @@ class ValidatorTest extends TestCase
             ->willReturn($this->getResponseStub());
 
         (new Validator())
-            ->setCharset(Validator::CHARSET_ISO_8859_1)
+            ->setCharset(Charset::ISO88591)
             ->setHttpClient($httpClient)
             ->validateDocument($document);
     }
@@ -116,8 +108,8 @@ class ValidatorTest extends TestCase
             ->willReturn($this->getResponseStub());
 
         (new Validator())
-            ->setParser(Validator::PARSER_XML)
-            ->setCharset(Validator::CHARSET_ISO_8859_1)
+            ->setParser(Parser::XML)
+            ->setCharset(Charset::ISO88591)
             ->setHttpClient($httpClient)
             ->validateNodes($nodes);
     }

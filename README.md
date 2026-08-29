@@ -106,6 +106,20 @@ Check out [validator.nu](http://about.validator.nu/#src) for instructions on set
 $validator = new HtmlValidator\Validator('http://self-hosted-validator.domain.com');
 ```
 
+## Configuration
+
+Use the `HtmlValidator\Parser` and `HtmlValidator\Charset` enums to configure the validator:
+
+```php
+<?php declare(strict_types=1);
+
+$validator = new HtmlValidator\Validator(
+    parser: HtmlValidator\Parser::XML,
+);
+
+$validator->setCharset(HtmlValidator\Charset::ISO88591);
+```
+
 ## Integration tests
 
 Integration tests use the Validator.nu and fixture services defined in `docker-compose.yaml`. Start the services and wait for them to become healthy before running the integration test group:

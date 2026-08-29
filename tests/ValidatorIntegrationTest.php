@@ -43,7 +43,7 @@ class ValidatorIntegrationTest extends TestCase
         return sprintf('%s/%s', self::FIXTURE_SERVER_URL, $filename);
     }
 
-    private function getValidator(string $parser = Validator::PARSER_HTML5): Validator
+    private function getValidator(Parser $parser = Parser::HTML5): Validator
     {
         return new Validator(self::VALIDATOR_URL, $parser);
     }
@@ -52,7 +52,7 @@ class ValidatorIntegrationTest extends TestCase
     {
         $response = $this->getValidator()->validateDocument(
             $this->getFixture('document-valid-utf8-html5.html'),
-            Validator::CHARSET_UTF_8,
+            Charset::UTF8,
         );
 
         $this->assertFalse($response->hasErrors(), 'Valid UTF-8 document should produce no errors');
@@ -61,7 +61,7 @@ class ValidatorIntegrationTest extends TestCase
 
     public function testCanValidateXmlDocument(): void
     {
-        $response = $this->getValidator(Validator::PARSER_XML)->validateDocument(
+        $response = $this->getValidator(Parser::XML)->validateDocument(
             $this->getFixture('document-valid-xml.xml'),
         );
 
@@ -71,7 +71,7 @@ class ValidatorIntegrationTest extends TestCase
 
     public function testCanValidateHtml4Document(): void
     {
-        $response = $this->getValidator(Validator::PARSER_HTML4)->validateDocument(
+        $response = $this->getValidator(Parser::HTML4)->validateDocument(
             $this->getFixture('document-valid-html4.html'),
         );
 
@@ -85,7 +85,7 @@ class ValidatorIntegrationTest extends TestCase
     {
         $response = $this->getValidator()->validateDocument(
             $this->getFixture('document-invalid-utf8-html5.html'),
-            Validator::CHARSET_UTF_8,
+            Charset::UTF8,
         );
 
         $this->assertTrue($response->hasErrors(), 'Invalid HTML5 document should produce errors');
@@ -104,9 +104,9 @@ class ValidatorIntegrationTest extends TestCase
 
     public function testDetectsErrorsOnInvalidXml(): void
     {
-        $response = $this->getValidator(Validator::PARSER_XML)->validateDocument(
+        $response = $this->getValidator(Parser::XML)->validateDocument(
             $this->getFixture('document-invalid-xml.xml'),
-            Validator::CHARSET_UTF_8,
+            Charset::UTF8,
         );
 
         $this->assertTrue($response->hasErrors(), 'Invalid XML document should produce errors');
@@ -125,9 +125,9 @@ class ValidatorIntegrationTest extends TestCase
 
     public function testDetectsErrorsOnInvalidHtml4(): void
     {
-        $response = $this->getValidator(Validator::PARSER_HTML4)->validateDocument(
+        $response = $this->getValidator(Parser::HTML4)->validateDocument(
             $this->getFixture('document-invalid-html4.html'),
-            Validator::CHARSET_UTF_8,
+            Charset::UTF8,
         );
 
         $this->assertTrue($response->hasErrors(), 'Invalid HTML4 document should produce errors');
