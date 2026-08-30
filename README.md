@@ -1,54 +1,46 @@
-html-validator
-==============
+# html-validator
 
 PHP client for the [validator.nu](https://validator.nu/) API. Can be configured to use a self-hosted version of the API.
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[![PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg?style=flat-square)](https://php.net)[![License](https://img.shields.io/github/license/rexxars/html-validator.svg?style=flat-square)](https://packagist.org/packages/rexxars/html-validator)[![Build Status](https://img.shields.io/travis/rexxars/html-validator/master.svg?style=flat-square)](https://travis-ci.org/rexxars/html-validator)
+## Installing
 
-Version >= 2.0.0 requires PHP >= 5.6.  
-Version <= 1.1.0 supports PHP <= 5.6, but won't be maintained anymore.
+Requires [PHP 8.3](https://php.net) or later and [Guzzle 8.1](https://docs.guzzlephp.org/) or later.
 
-# Usage
+Install the package with [Composer](https://getcomposer.org):
+
+```sh
+composer require christeredvartsen/html-validator
+```
+
+## Usage
 
 ```php
-<?php
+<?php declare(strict_types=1);
+
 $document = file_get_contents('my-page.html');
 
 $validator = new HtmlValidator\Validator();
 $result = $validator->validateDocument($document);
 
-$result->hasErrors();   // true / false
-$result->hasWarnings(); // true / false
-
-$result->getErrors();   // array(HtmlValidator\Message)
-
+$result->hasErrors();   // bool
+$result->hasWarnings(); // bool
+$result->getErrors();   // list<HtmlValidator\Message>
 echo $result;           // Prints all messages in human-readable format
 echo $result->toHTML(); // Prints all messages HTML-formatted
 ```
 
-# Installing
-
-To include `html-validator` in your project, add it to your `composer.json` file:
-
-```json
-{
-    "require": {
-        "rexxars/html-validator": "^2.2.0"
-    }
-}
-```
-
-# Example
+## Example
 
 Document to be validated (`validate-me.html`):
-``` html
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+
+```html
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Invalid HTML4!</title>
+    <title>Invalid HTML5!</title>
 </head>
 <body>
-    <p>This document is not a proper, well-formed HTML4 document!</p>
+    <p>This document is not a proper, well-formed HTML5 document!</p>
     <p>It contains fatal flaws, like:</p>
     <ul>
         <li><div> tags which are not closed</li>
@@ -59,22 +51,19 @@ Document to be validated (`validate-me.html`):
 ```
 
 Using the validator:
+
 ```php
-<?php
+<?php declare(strict_types=1);
+
 $document = file_get_contents('validate-me.html');
 
 $validator = new HtmlValidator\Validator();
-$validator->setParser(HtmlValidator\Validator::PARSER_HTML4);
-$result = $validator->validateDocument($document);
-
-echo $result;
+echo $validator->validateDocument($document);
 ```
 
 Output:
+
 ```
-info: HTML4-specific tokenization errors are enabled.
-
-
 error: End tag “li” seen, but there were open elements.
 From line 10, column 44; to line 10, column 48
 not closed</li>
@@ -87,43 +76,64 @@ From line 10, column 13; to line 10, column 17
 error: Stray end tag “span”.
 From line 11, column 67; to line 11, column 73
 ed closed </span></li>
-
 ```
 
-# Validating a URL
-
-Since 1.1.0 you can validate URLs as well:
+## Validating a URL
 
 ```php
-<?php
-$validator = new HtmlValidator\Validator();
-$validator->setParser(HtmlValidator\Validator::PARSER_HTML5);
-$result = $validator->validateUrl($url);
+<?php declare(strict_types=1);
 
-echo $result;
+$validator = new HtmlValidator\Validator();
+echo $validator->validateUrl($url);
 ```
 
 Note that if you want to check pages that return status codes that are not in the 2xx-range (like a 404-page), you need to pass a `checkErrorPages` option:
 
 ```php
-$validator = new HtmlValidator\Validator();
-$validator->setParser(HtmlValidator\Validator::PARSER_HTML5);
-$result = $validator->validateUrl($url, ['checkErrorPages' => true]);
+<?php declare(strict_types=1);
 
-echo $result;
+$validator = new HtmlValidator\Validator();
+echo $validator->validateUrl($url, ['checkErrorPages' => true]);
 ```
 
-# Using a self-hosted version of the API
+## Using a self-hosted version of the API
 
-Check out [validator.nu](http://about.validator.nu/#src) for instructions on setting up the service.
-Once set up, you can configure the validator to use a different host:
+Check out [validator.nu](http://about.validator.nu/#src) for instructions on setting up the service. Once set up, you can configure the validator to use a different host:
 
 ```php
-<?php
-$validator = new HtmlValidator\Validator('http://self-hosted-validator.domain.com');
+<?php declare(strict_types=1);
 
+$validator = new HtmlValidator\Validator('http://self-hosted-validator.domain.com');
 ```
 
-# License
+## Configuration
 
-MIT licensed. See LICENSE for full terms.
+Use the `HtmlValidator\Parser` and `HtmlValidator\Charset` enums to configure the validator:
+
+```php
+<?php declare(strict_types=1);
+
+$validator = new HtmlValidator\Validator(
+    parser: HtmlValidator\Parser::XML,
+);
+
+$validator->setCharset(HtmlValidator\Charset::ISO88591);
+```
+
+## Integration tests
+
+Integration tests use the Validator.nu and fixture services defined in `docker-compose.yaml`. Start the services and wait for them to become healthy before running the integration test group:
+
+```sh
+docker compose up --detach --wait && vendor/bin/phpunit --group integration
+```
+
+Stop the services when finished:
+
+```sh
+docker compose down
+```
+
+## License
+
+MIT licensed. See [LICENSE](./LICENSE) for full terms.

@@ -1,32 +1,75 @@
 {
-    "name": "rexxars/html-validator",
-    "description": "Validates HTML using Validator.nu",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Espen Hovlandsdal",
-            "email": "espen@hovlandsdal.com"
-        }
-    ],
-    "scripts": {
-      "test": "./vendor/bin/phpunit"
+  "name": "christeredvartsen/html-validator",
+  "type": "library",
+  "description": "Validates HTML using Validator.nu",
+  "keywords": [
+    "html",
+    "validator"
+  ],
+  "homepage": "https://github.com/christeredvartsen/html-validator",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Christer Edvartsen",
+      "email": "cogo@starzinger.net"
     },
-    "require": {
-        "php": ">=5.6.0",
-        "ext-json": "*",
-        "ext-dom": "*",
-        "guzzlehttp/guzzle": "^6.2.1|^7.0"
+    {
+      "name": "Espen Hovlandsdal",
+      "email": "espen@hovlandsdal.com"
     },
-    "require-dev": {
-        "phpunit/phpunit": "^5.5.0",
-        "ext-dom": "*"
-    },
-    "support": {
-        "issues": "https://github.com/rexxars/html-validator/issues"
-    },
-    "autoload": {
-        "psr-0": {
-            "HtmlValidator": "library"
-        }
+    {
+      "name": "Contributors",
+      "homepage": "https://github.com/christeredvartsen/html-validator/graphs/contributors"
     }
+  ],
+  "support": {
+    "issues": "https://github.com/christeredvartsen/html-validator/issues",
+    "source": "https://github.com/christeredvartsen/html-validator",
+    "docs": "https://github.com/christeredvartsen/html-validator"
+  },
+  "require": {
+    "php": ">=8.3",
+    "ext-json": "*",
+    "guzzlehttp/guzzle": "^8.1"
+  },
+  "require-dev": {
+    "ext-dom": "*",
+    "friendsofphp/php-cs-fixer": "^3.95",
+    "imbo/imbo-coding-standard": "^3.0",
+    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-deprecation-rules": "^2.0",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpunit/phpunit": "^12.5",
+    "ramsey/conventional-commits": "^1.7",
+    "symfony/var-dumper": "^7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "HtmlValidator\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "HtmlValidator\\": "tests/"
+    }
+  },
+  "scripts": {
+    "ci": [
+      "@cs",
+      "@sa",
+      "@test"
+    ],
+    "cs": "vendor/bin/php-cs-fixer check --diff",
+    "cs:fix": "vendor/bin/php-cs-fixer fix --diff",
+    "sa": "vendor/bin/phpstan analyse",
+    "test": "vendor/bin/phpunit",
+    "test:coverage": "@test --coverage-html build/coverage"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
+  }
 }
